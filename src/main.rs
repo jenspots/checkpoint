@@ -1,33 +1,34 @@
-use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
+pub mod models;
+pub mod routes;
+pub mod schema;
+
+use actix_web::middleware::Logger;
+use actix_web::{web, App, HttpServer};
+use diesel::r2d2::ConnectionManager;
+use diesel::r2d2::Pool;
+use diesel::SqliteConnection;
+
+pub type ConnectionPool = Pool<ConnectionManager<SqliteConnection>>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().route("/", web::get().to(index)))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
-}
+    // Configure logging.
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-async fn index(_req: HttpRequest) -> HttpResponse {
-    HttpResponse::Ok().body("Hello, World!")
-}
+    // Use connection pool.
+    let manager = ConnectionManager::<SqliteConnection>::new("checkpoint.db");
+    let pool = Pool::builder()
+        .build(manager)
+        .expect("Database URL should be valid path to SQLite DB file.");
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use actix_web::body::to_bytes;
-    use actix_web::{http, test};
-
-    #[actix_web::test]
-    async fn test_index_ok() {
-        let req = test::TestRequest::default().to_http_request();
-        let resp = index(req).await;
-
-        // Check status code.
-        assert_eq!(resp.status(), http::StatusCode::OK);
-
-        // Check body.
-        let bytes = to_bytes(resp.into_body()).await.unwrap();
-        assert_eq!(std::str::from_utf8(&bytes).unwrap(), "Hello, World!");
-    }
+    // Return an Actix server.
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(pool.clone()))
+            .service(routes::signup::signup)
+            .wrap(Logger::default())
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
