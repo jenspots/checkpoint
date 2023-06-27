@@ -1,4 +1,5 @@
 use crate::models::error::ErrorMessage;
+use crate::models::token::Token;
 use crate::models::user::User;
 use crate::{schema, ConnectionPool};
 use actix_web::{error, post, web, HttpResponse, Responder};
@@ -40,11 +41,18 @@ pub async fn token(
     let hash_data = hasher.finalize().to_vec();
 
     // Only continue if the password was correct.
+    // TODO: prevent side channel attacks using cryptographically secure library.
     if !hash_data.eq(&row.hash) {
         return Ok(HttpResponse::Unauthorized().json(ErrorMessage {
             message: "Invalid Credentials".to_string(),
         }));
     }
 
-    Ok(HttpResponse::Ok().body("OK!"))
+    // Attempt to create JWT, and return if successfull.
+    match Token::new(&row).encode() {
+        Ok(token) => Ok(HttpResponse::Ok().body(token)),
+        Err(_) => Ok(HttpResponse::InternalServerError().json(ErrorMessage {
+            message: "Internal Server Error".to_string(),
+        })),
+    }
 }
