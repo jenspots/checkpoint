@@ -26,6 +26,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(web::Data::new(pool.clone()))
             .service(routes::signup::signup)
+            .service(routes::token::token)
             .wrap(Logger::default())
     })
     .bind(("127.0.0.1", 8080))?

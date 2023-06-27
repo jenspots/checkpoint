@@ -1,8 +1,6 @@
 use crate::models::user::{UserInsert, UserResponse};
 use crate::{schema, ConnectionPool};
 use actix_web::{error, post, web, HttpResponse, Responder};
-use base64;
-use base64::Engine;
 use diesel::insert_into;
 use diesel::{Connection, QueryDsl, RunQueryDsl, SelectableHelper};
 use rand::prelude::*;
@@ -38,8 +36,8 @@ pub async fn signup(
     // Generate new User object with required values.
     let user = UserInsert {
         email: body.email.clone(),
-        hash: base64::engine::general_purpose::STANDARD.encode(hash_data),
-        salt: base64::engine::general_purpose::STANDARD.encode(salt_data),
+        hash: hash_data.to_vec(),
+        salt: salt_data.to_vec(),
     };
 
     // Add to the database.
