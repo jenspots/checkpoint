@@ -1,10 +1,8 @@
 use crate::models::error::ErrorMessage;
 
 use crate::models::user::User;
-use crate::{schema, ConnectionPool};
+use crate::ConnectionPool;
 use actix_web::{error, post, web, HttpResponse, Responder};
-use diesel::TextExpressionMethods;
-use diesel::{QueryDsl, RunQueryDsl, SelectableHelper};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]

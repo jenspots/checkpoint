@@ -56,7 +56,7 @@ impl UserSignUp {
 
     pub fn hash(&self, salt: &Vec<u8>) -> Vec<u8> {
         let mut hasher = Sha512::new();
-        let hash_input = [self.password.as_bytes(), &salt].concat();
+        let hash_input = [self.password.as_bytes(), salt].concat();
         hasher.update(hash_input);
         hasher.finalize().to_vec()
     }
