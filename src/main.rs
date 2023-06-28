@@ -4,13 +4,14 @@ pub mod schema;
 
 use actix_web::middleware::Logger;
 use actix_web::{web, App, HttpServer};
-use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::Pool;
+use diesel::r2d2::{ConnectionManager, PooledConnection};
 use diesel::SqliteConnection;
 use dotenv::dotenv;
 use std::env;
 
 pub type ConnectionPool = Pool<ConnectionManager<SqliteConnection>>;
+pub type ConnectionDB = PooledConnection<ConnectionManager<SqliteConnection>>;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
